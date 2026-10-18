@@ -6,7 +6,7 @@
 #    Codex中文启动器-安装包-vX.Y.Z.exe   单文件安装程序（自解压）
 # ============================================================
 param(
-    [string]$Version = '0.8.0',
+    [string]$Version = '',
     [switch]$NoPause
 )
 
@@ -15,6 +15,17 @@ $base = Split-Path -Parent $MyInvocation.MyCommand.Path
 $outDir = Join-Path $base '发布'
 $stage = Join-Path $outDir '_stage'
 $payload = Join-Path $stage 'payload'
+
+# 未指定版本时，从源码 AppInfo.cs 自动读取
+if (-not $Version) {
+    $appInfoFile = Join-Path $base 'source\codex-desktop-zh-main\src\AppInfo.cs'
+    if (Test-Path $appInfoFile) {
+        $appInfoContent = Get-Content $appInfoFile -Raw -Encoding utf8
+        $versionMatch = [regex]::Match($appInfoContent, 'public const string Version = "([0-9]+\.[0-9]+\.[0-9]+)"')
+        if ($versionMatch.Success) { $Version = $versionMatch.Groups[1].Value }
+    }
+    if (-not $Version) { $Version = '0.8.0' }
+}
 
 Write-Host "== 打包 Codex 中文启动器 v$Version ==" -ForegroundColor Cyan
 

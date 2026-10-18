@@ -2,6 +2,23 @@
 
 > 本项目在上游 shibaweidu/codex-desktop-zh 基础上做完整功能增强，以下为增强内容。
 
+## v0.8.1
+
+安全与信任建设（阶段 0-6）：
+
+- **阶段 0**：安全基线（tag `v0.8.0-baseline`）、备份、哈希与测试记录（`docs/SECURITY_BASELINE.md`）
+- **阶段 1**：证书与签名审计、信任策略说明、SmartScreen 表述修正、发布验证工具
+- **阶段 2**：发布清单 / 检查清单 / 依赖固定（Actions 固定 commit SHA）、CI 签名与版本校验
+- **阶段 3**：固定上游 commit + 源码包 SHA-256 校验、旧版本备份、构建失败不覆盖、`build-info.json`
+- **阶段 4**：调试端口与守护行为实测（`docs/RUNTIME_BEHAVIOR.md`）、日志脱敏、隐私与网络清单
+- **阶段 5**：卸载支持普通 / 彻底两种模式，彻底模式按证书指纹清理（`docs/UNINSTALL.md`）
+- **阶段 6**：`docs/AUDIT_SCOPE.md` 审查范围与已知问题清单
+
+修复：
+
+- 守护在启动器重启后会在用户关闭 Codex 时自动重开的问题
+- CI 证书导入卡死、YAML 解析失败、CI 签名状态异常
+- 旧卸载入口编码问题、打包版本号写死、日志包含 Windows 用户名
 ## v0.8.0
 
 基于上游 `shibaweidu/codex-desktop-zh` v0.7.7 的增强版。

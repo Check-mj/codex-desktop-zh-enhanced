@@ -48,3 +48,4 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 
 - 安全设计：[`docs/SECURITY_DESIGN.md`](docs/SECURITY_DESIGN.md)
 - 安全基线（版本、哈希、证书、测试记录）：[`docs/SECURITY_BASELINE.md`](docs/SECURITY_BASELINE.md)
+- 第三方审查范围与已知问题：[`docs/AUDIT_SCOPE.md`](docs/AUDIT_SCOPE.md)

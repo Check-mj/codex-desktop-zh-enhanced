@@ -191,6 +191,7 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 - [运行时行为与测试记录](docs/RUNTIME_BEHAVIOR.md)
 - [隐私与网络行为说明](docs/PRIVACY_AND_NETWORK.md)
 - [卸载与证书清理](docs/UNINSTALL.md)
+- [第三方审查范围与已知问题](docs/AUDIT_SCOPE.md)
 
 ## 🙏 致谢与许可
 
