@@ -57,6 +57,13 @@ namespace CodexZhLauncher
                 bool skipLogged = false;
                 var guardStartUtc = DateTime.UtcNow;
                 bool autoLaunchDone = false;
+                // 若守护启动时 Codex 已在运行（例如启动器被重启），本次不再自动拉起，
+                // 避免用户主动关闭 Codex 后又被守护重新打开。
+                if (AnyCandidateProcess())
+                {
+                    autoLaunchDone = true;
+                    AppLog.Write("guard.autolaunch.skipped existing-instance");
+                }
                 CodexInstall install = null;
                 DateTime lastDetectUtc = DateTime.MinValue;
 
@@ -72,6 +79,11 @@ namespace CodexZhLauncher
                         bool unconfirmedOwned = markedAlive && !LaunchOwnership.IsApplied(marked);
                         if (markedAlive && !unconfirmedOwned)
                         {
+                            if (!autoLaunchDone)
+                            {
+                                autoLaunchDone = true;
+                                AppLog.Write("guard.autolaunch.skipped existing-instance");
+                            }
                             ownedPid = marked;
                             Thread.Sleep(PollInterval);
                             continue;

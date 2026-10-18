@@ -182,6 +182,8 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 - [发布前检查清单](docs/RELEASE_CHECKLIST.md)
 - [依赖与构建环境（含 Actions 固定 SHA）](docs/DEPENDENCIES.md)
 - [更新与回滚说明](docs/UPDATE_AND_ROLLBACK.md)
+- [运行时行为与测试记录](docs/RUNTIME_BEHAVIOR.md)
+- [隐私与网络行为说明](docs/PRIVACY_AND_NETWORK.md)
 
 ## 🙏 致谢与许可
 

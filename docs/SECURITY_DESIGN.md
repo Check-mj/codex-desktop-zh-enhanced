@@ -70,12 +70,23 @@ Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert |
 - 启动 Codex 时传入 `--remote-debugging-address=127.0.0.1` 与随机端口，仅本机回环。
 - 通过 CDP `Page.addScriptToEvaluateOnNewDocument` 注入 i18n 补丁，注入完成后由页面重载生效。
 - 主进程 inspector 端口用于原生菜单补丁；该端口在当前 MSIX 版本连接失败，属已知情况（仅日志报错）。
+- 实测（2026-10-19）：渲染调试端口仅监听 `127.0.0.1`，未监听 `0.0.0.0` / 局域网地址。
+- **调试端口在 Codex 运行期间持续开放**：Chromium 无法在运行中关闭该端口。
 
-待验证/加固（阶段 4）：
-- [ ] 端口释放时机与崩溃残留；
+阶段 4 实测与残余风险：
+- [x] 确认仅回环监听（实测 `Get-NetTCPConnection`）
+- [x] 端口在 Codex 退出后随进程释放（依赖进程生命周期）
+- [x] 注入失败时会记录错误并继续（不崩溃）
+- [ ] 缩短调试端口开放窗口（未实现，需评估替代方案）
 - [ ] 注入失败时的回退行为；
 - [ ] 缩短调试端口开放窗口；
 - [ ] 确认没有监听非回环地址。
+
+### 残余风险（如实记录）
+
+Codex 由启动器启动并运行时，本机同用户权限的进程可连接该回环端口，进而读取/修改 Codex 渲染进程状态。
+这是当前注入架构的固有代价，**不是已修复项**。缓解手段：仅回环绑定、随机端口、不额外常驻端口。
+后续可选方向（未实现）：会话结束后重启 Codex 关闭端口（会丢失运行时注入）、评估 `--remote-debugging-pipe` 等替代方案。
 
 ## 3. 进程守护
 
@@ -97,8 +108,10 @@ Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert |
 
 - 位置：`%LOCALAPPDATA%\CodexZhLauncher\logs\launcher.log`，超过 1MB 轮转为 `.old`。
 - 内容：运行事件、版本检测结果、注入流程细节、异常堆栈。
-- **可能包含**：本机绝对路径、进程参数、Windows 用户名（来自路径）。
-- 阶段 4/6 计划：减少不必要敏感字段，必要时脱敏；文档说明用户反馈前应自行删除路径信息。
+- **已脱敏（v0.8.0 起）**：写入前把当前用户目录与 `C:\Users\<用户名>` 替换为 `%USERPROFILE%`；
+  日志中不应再出现 Windows 用户名。仍可能包含安装路径、端口号、PID。
+- 分享日志前仍建议自行检查并删除不需要的路径信息。
+- 详见 [`PRIVACY_AND_NETWORK.md`](PRIVACY_AND_NETWORK.md)。
 
 ## 6. 网络访问清单
 
@@ -127,7 +140,7 @@ Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert |
 - [x] 发布物签名校验（CI）与发布清单/哈希清单（阶段 2）
 - [x] CI 第三方 Actions 固定到 commit SHA（阶段 2）
 - [ ] 卸载时按指纹清理证书（阶段 5）
-- [ ] 日志脱敏（阶段 4/6）
+- [x] 调试端口行为实测与风险记录、日志脱敏（阶段 4）
 - [ ] 第三方安全审查（阶段 6）
 
 本文档随实现更新；**未完成项不会写成“已实现”**。

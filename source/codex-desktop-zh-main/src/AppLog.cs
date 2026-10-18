@@ -35,6 +35,38 @@ namespace CodexZhLauncher
             }
         }
 
+        private static readonly string UserProfilePath =
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        /// <summary>写入日志前对用户目录做脱敏，避免把本机 Windows 用户名写进日志。</summary>
+        private static string Scrub(string message)
+        {
+            if (String.IsNullOrEmpty(message)) return message;
+            var result = message;
+            try
+            {
+                var home = UserProfilePath;
+                if (!String.IsNullOrEmpty(home))
+                {
+                    result = result.Replace(home, "%USERPROFILE%");
+                }
+            }
+            catch
+            {
+            }
+            try
+            {
+                result = System.Text.RegularExpressions.Regex.Replace(
+                    result,
+                    @"[A-Za-z]:\\Users\\[^\\\s""]+",
+                    @"%USERPROFILE%",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            }
+            catch
+            {
+            }
+            return result;
+        }
         public static void Write(string message)
         {
             try
@@ -44,7 +76,7 @@ namespace CodexZhLauncher
                     Directory.CreateDirectory(DirectoryPath);
                     File.AppendAllText(
                         FilePath,
-                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "  " + message + Environment.NewLine,
+                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "  " + Scrub(message) + Environment.NewLine,
                         new UTF8Encoding(false));
                 }
             }
