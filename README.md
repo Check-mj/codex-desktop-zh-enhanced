@@ -181,6 +181,7 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 - [发布清单 v0.8.0（哈希 / 签名 / 源码 commit）](docs/RELEASE_MANIFEST-v0.8.0.md)
 - [发布前检查清单](docs/RELEASE_CHECKLIST.md)
 - [依赖与构建环境（含 Actions 固定 SHA）](docs/DEPENDENCIES.md)
+- [更新与回滚说明](docs/UPDATE_AND_ROLLBACK.md)
 
 ## 🙏 致谢与许可
 

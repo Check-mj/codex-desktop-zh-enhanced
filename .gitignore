@@ -9,3 +9,7 @@ source/codex-desktop-zh-main/obj/
 *.pdb
 *.log
 *.zip
+
+# 本地构建/备份记录
+build-info.json
+backups/

@@ -123,7 +123,7 @@ Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert |
 
 ## 8. 未完成 / 待改进
 
-- [ ] 固定上游 commit 与源码哈希（阶段 3）
+- [x] 固定上游 commit 与源码哈希、失败回滚（阶段 3）
 - [x] 发布物签名校验（CI）与发布清单/哈希清单（阶段 2）
 - [x] CI 第三方 Actions 固定到 commit SHA（阶段 2）
 - [ ] 卸载时按指纹清理证书（阶段 5）

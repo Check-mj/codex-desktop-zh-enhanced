@@ -24,7 +24,8 @@
 |---|---|---|
 | `shibaweidu/codex-desktop-zh` | v0.7.7 | `82136f547a9bca582fc6d9ed9f37b6600de7e13a` |
 
-> `重新构建.ps1 -Update` 目前仍会拉取上游 `main` 分支（阶段 3 将改为固定 commit + 校验）。
+> 固定信息见 `tools/upstream-pin.json`（版本 / commit / 源码包 SHA-256）。
+> `重新构建.ps1 -Update` 只使用固定 commit，需显式 `-Repin` 才会升级上游。
 
 ## CI 第三方 Actions（固定到 commit SHA）
 
