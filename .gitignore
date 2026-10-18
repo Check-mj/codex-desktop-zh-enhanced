@@ -1,0 +1,11 @@
+# 构建产物
+source/codex-desktop-zh-main/dist/
+source/codex-desktop-zh-main/obj/
+发布/
+
+# 二进制/临时文件
+*.exe
+*.bak
+*.pdb
+*.log
+*.zip

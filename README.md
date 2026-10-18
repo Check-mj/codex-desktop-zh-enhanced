@@ -1,0 +1,128 @@
+# Codex 中文启动器（增强版）
+
+把 **Codex Desktop（ChatGPT 桌面版）** 的界面变成中文，并解决“每次都要手动点汉化工具”的麻烦：
+**开机自动以中文启动、点原版图标也是中文、界面里一键重建更新。**
+
+本项目基于 [shibaweidu/codex-desktop-zh](https://github.com/shibaweidu/codex-desktop-zh)（MIT）增强而来，
+在其运行时注入汉化的基础上，增加了后台守护、开机自启、自更新、安装包等一整套“开箱即用”能力。
+
+> ⚠️ 非官方项目，与 OpenAI 无关。仅做本地界面语言增强，不修改 Codex 本体、不代理、不收集账号数据。
+
+---
+
+## ✨ 功能特性
+
+| 功能 | 说明 |
+|---|---|
+| 中文界面 | 运行时注入 i18n 开关，**不修改 Codex 的 app.asar**，商店更新不会弄坏 |
+| 中文原生菜单 | 文件 / 编辑 / 视图 / 帮助 等菜单一并中文化 |
+| 开机自动中文启动 | 登录 Windows 后约 2 秒开始拉起 Codex，进桌面时通常已是中文窗口 |
+| 点原版图标也是中文 | 后台守护会静默接管“裸启动”的 Codex 并切换为中文 |
+| 长会话保护 | 已运行超过 30 秒的实例不会被强杀，避免丢草稿 |
+| 守护自恢复 | 监督进程发现守护退出后 3 秒自动拉起 |
+| Codex 版本检测 | Codex 更新后弹窗提醒，引导点「一键重建」 |
+| 上游版本检测 | 上游启动器发新版时弹窗提醒 |
+| 一键重建 | 界面按钮：自动同步上游、套用本地改动、编译、签名、重启 |
+| 路径自修复 | 程序被移动后，自动修正开机自启项与快捷方式 |
+| 日志自动清理 | 超过 1MB 自动轮转，只保留一份 .old |
+| 安装包 | 提供 ZIP 与单文件 EXE 安装程序，自动导入证书、建快捷方式、设自启 |
+
+## 📋 环境要求
+
+- Windows 10 / 11 x64
+- 已安装 **Microsoft Store 版** Codex Desktop（MSIX）
+  - 仅识别 MSIX 安装方式；安装版 / 便携版不会识别
+- 无需管理员权限；无需安装 .NET SDK（使用系统自带 .NET Framework 4.0 的 `csc.exe` 编译）
+
+## 🚀 安装
+
+### 方式一：安装包（推荐）
+
+到 [Releases](../../releases) 下载：
+
+- `Codex中文启动器-安装包-vX.Y.Z.exe` —— 单文件安装程序
+- 或 `...zip` —— 解压后双击 `安装.cmd`
+
+安装程序会：
+
+1. 安装到 `%LOCALAPPDATA%\Programs\Codex中文启动器`
+2. 导入自签名证书到当前用户信任存储
+3. 创建桌面 / 开始菜单「Codex 中文版」快捷方式
+4. 设置开机自启（后台守护）
+5. 启动启动器（首次显示使用说明）
+
+> 换电脑首次运行安装程序时，若 SmartScreen 提示“未知发布者”，点「更多信息 → 仍要运行」即可；
+> 安装程序会自动把证书导入信任存储。
+
+### 方式二：从源码构建
+
+```powershell
+# 编译（需要 Windows 自带 .NET Framework 4.0）
+powershell -ExecutionPolicy Bypass -File source/codex-desktop-zh-main/build.ps1
+
+# 生成安装包（可选）
+powershell -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
+```
+
+## 🎯 使用方式
+
+安装后有两条路，任选：
+
+1. **中文启动器**（推荐，零延迟）
+   双击桌面/开始菜单的 **「Codex 中文版」**，直接以中文界面启动。
+
+2. **开机后台守护**
+   保持主界面「开机自启动（后台守护）」勾选，之后：
+   - 开机后自动以中文启动 Codex
+   - 你照常点**原版 Codex 图标**，只是把已打开的中文窗口调到前台
+   - 若中途关掉 Codex 再点原版图标，守护会接管并切成中文（约 20～40 秒）
+
+主界面上方的**说明横幅**可随时打开完整《使用说明》。
+
+## 🔄 更新
+
+- 启动器会自动检测 **Codex 版本变化** 和 **上游启动器新版本**，弹窗提醒
+- 提醒后打开工具，点 **「一键重建」** 即可：
+  自动下载上游最新源码 → 套用本地改动 → 编译 → 签名 → 重启
+- 也可以命令行：`重新构建.cmd -Update`
+
+## 🗑 卸载
+
+运行安装目录下的 `卸载.cmd`：清除开机自启、快捷方式、日志与配置。
+程序目录需手动删除（不会触碰 Codex 本体）。
+
+## 🛠 技术原理
+
+1. Codex 网页界面的翻译由 Statsig 开关 `72216192 / enable_i18n` 控制，默认关闭；
+   `localeOverride` 只决定语言，不负责开启翻译。
+2. 启动器用 `--remote-debugging-port` 启动 Codex，通过 CDP 在页面加载前注入补丁，
+   强制 `enable_i18n = true`、`locale_source = SYSTEM`，并设置 `localeOverride = zh-CN`。
+3. 原生菜单通过主进程 inspector 端口打补丁。
+4. 因为运行中的 Codex 无法被“热注入”，裸启动的实例需要重启一次——守护模式就是自动完成这一步。
+
+## 📁 目录结构
+
+```
+├─ source/codex-desktop-zh-main/   完整源码（含 build.ps1）
+├─ overlay/                         本项目的本地改动文件（重建 -Update 时套用）
+├─ install.ps1 / 安装.cmd           安装程序
+├─ 卸载.cmd                         卸载
+├─ 导入证书.cmd                     导入自签名证书（换电脑用）
+├─ 重新构建.cmd                     重建启动器（-Update 同步上游）
+├─ 打包安装版.cmd                   重新生成发布安装包
+├─ sign.ps1                         代码签名（自签名证书）
+└─ CodexZhLauncher.cer              公钥证书（无私钥）
+```
+
+## 🔐 安全说明
+
+- 程序使用**自签名证书**签名：本机首次运行安装程序会自动导入信任；其他电脑可运行 `导入证书.cmd`
+- 仓库中只包含**公钥证书** `CodexZhLauncher.cer`，不包含任何私钥
+- 程序不联网（除检查 GitHub 版本更新外），不上传任何数据
+- 汉化方式为本地运行时注入，不修改 Codex 安装文件
+
+## 🙏 致谢与许可
+
+- 核心汉化注入来自 [shibaweidu/codex-desktop-zh](https://github.com/shibaweidu/codex-desktop-zh)（MIT）
+- 本项目修改同样以 **MIT License** 发布，详见 [LICENSE](LICENSE) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- 非官方项目，与 OpenAI / Anthropic 无关联
