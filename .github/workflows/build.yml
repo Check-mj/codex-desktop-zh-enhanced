@@ -1,5 +1,8 @@
 name: build
 
+# CI 只产出“开发验证产物”，不自动发布 Release。
+# 原因：CI 每次构建都会生成临时自签名证书，不属于固定的官方签名身份。
+# 官方发布由维护者在本机构建、用固定证书签名后手动上传。
 on:
   push:
     branches: [ main ]
@@ -29,31 +32,19 @@ jobs:
         shell: pwsh
         run: ./打包安装版.ps1 -NoPause
 
-      - name: Upload installer artifact
+      - name: Verify signatures
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path '发布' -Filter '*.exe' | ForEach-Object {
+            $sig = Get-AuthenticodeSignature $_.FullName
+            Write-Host "$($_.Name): status=$($sig.Status) signer=$($sig.SignerCertificate.Subject)"
+            if ($sig.Status -notin @('Valid', 'UntrustedRoot')) { throw "signature invalid: $($sig.Status)" }
+            if (-not $sig.SignerCertificate) { throw "no signer certificate" }
+            if ($sig.SignerCertificate.Subject -notlike '*Codex Zh Launcher*') { throw "unexpected signer" }
+          }
+
+      - name: Upload installer artifact (dev build, not an official release)
         uses: actions/upload-artifact@v4
         with:
-          name: installer
+          name: dev-installer
           path: 发布/*
-
-  release:
-    needs: build
-    timeout-minutes: 15
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download installer artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: installer
-          path: 发布
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: 发布/*
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

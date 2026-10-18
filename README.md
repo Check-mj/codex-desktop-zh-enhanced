@@ -86,6 +86,27 @@ powershell -ExecutionPolicy Bypass -File source/codex-desktop-zh-main/build.ps1
 powershell -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
 ```
 
+## 🔍 验证发布文件
+
+每个发布物都可以独立验证，无需信任作者：
+
+```powershell
+# 1. 核对哈希（与 Release 说明里的 SHA-256 对比）
+Get-FileHash .\Codex-Zh-Launcher-Installer-v0.8.0.exe -Algorithm SHA256
+
+# 2. 检查签名与签名者
+Get-AuthenticodeSignature .\Codex-Zh-Launcher-Installer-v0.8.0.exe |
+    Format-List Status, SignerCertificate
+
+# 3. 或用仓库自带脚本
+powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
+  -ExpectedThumbprint 76134CBD2706FD88D9FAD973CED58B3E32AC1DED
+```
+
+详细步骤与局限性见 [`docs/RELEASE_VERIFICATION.md`](docs/RELEASE_VERIFICATION.md)。
+
+> 官方发布签名身份指纹：`76134CBD2706FD88D9FAD973CED58B3E32AC1DED`。
+> CI 自动构建产物由临时证书签名，仅用于开发验证，**不是官方发布物**。
 ## 🎯 使用方式
 
 安装后有两条路，任选：
@@ -133,15 +154,30 @@ powershell -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
 ├─ 重新构建.cmd                     重建启动器（-Update 同步上游）
 ├─ 打包安装版.cmd                   重新生成发布安装包
 ├─ sign.ps1                         代码签名（自签名证书）
+├─ tools/verify-release.ps1         发布文件验证脚本
+├─ docs/SECURITY_DESIGN.md          安全设计说明
+├─ docs/SECURITY_BASELINE.md        安全基线记录
+├─ docs/RELEASE_VERIFICATION.md     发布验证指南
 └─ CodexZhLauncher.cer              公钥证书（无私钥）
 ```
 
 ## 🔐 安全说明
 
-- 程序使用**自签名证书**签名：本机首次运行安装程序会自动导入信任；其他电脑可运行 `导入证书.cmd`
-- 仓库中只包含**公钥证书** `CodexZhLauncher.cer`，不包含任何私钥
-- 程序不联网（除检查 GitHub 版本更新外），不上传任何数据
-- 汉化方式为本地运行时注入，不修改 Codex 安装文件
+- 程序使用**自签名证书**签名，不是公共 CA 证书：
+  安装程序会将其导入当前用户的 `Root` / `TrustedPublisher`，以便 Windows 显示为可信；
+  这**不能保证**消除 SmartScreen 警告（SmartScreen 与签名验证是不同机制）。
+- 仓库中只包含**公钥证书** `CodexZhLauncher.cer`，**不包含任何私钥**。
+- 卸载脚本默认**不删除**证书；彻底清理证书的方法见 `docs/` 文档。
+- 网络访问仅限：GitHub 版本检查、一键重建下载上游源码；无遥测、不上传用户数据。
+- 汉化方式为本地运行时注入，**不修改 Codex 安装文件、不替换 app.asar**。
+- 详细设计、信任边界与已知限制见
+  [`docs/SECURITY_DESIGN.md`](docs/SECURITY_DESIGN.md)。
+
+## 📚 安全与信任文档
+
+- [安全设计与信任边界](docs/SECURITY_DESIGN.md)
+- [安全基线（版本 / 哈希 / 证书 / 测试记录）](docs/SECURITY_BASELINE.md)
+- [发布文件验证指南](docs/RELEASE_VERIFICATION.md)
 
 ## 🙏 致谢与许可
 
