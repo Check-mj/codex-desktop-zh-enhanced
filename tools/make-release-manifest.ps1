@@ -1,4 +1,4 @@
-# 生成发布清单（RELEASE MANIFEST）
+﻿# 生成发布清单（RELEASE MANIFEST）
 # 用法示例：
 #   powershell -File tools\make-release-manifest.ps1 `
 #     -Version 0.8.0 `
@@ -38,7 +38,7 @@ if ($InstallerExe -and (Test-Path $InstallerExe)) { $sig = Get-AuthenticodeSigna
 $lines = @()
 $lines += "# 发布清单 v$Version"
 $lines += ""
-$lines += "> 由 `tools/make-release-manifest.ps1` 生成。用于核对发布物的来源、哈希与签名。"
+$lines += "> 由 tools/make-release-manifest.ps1 生成。用于核对发布物的来源、哈希与签名。"
 $lines += ""
 $lines += "## 版本信息"
 $lines += ""
@@ -80,8 +80,8 @@ $lines += ""
 $lines += "## 验证方式"
 $lines += ""
 $lines += '```powershell'
-$lines += 'Get-FileHash .\Codex-Zh-Launcher-Installer-v'"$Version"'.exe -Algorithm SHA256'
-$lines += 'Get-AuthenticodeSignature .\Codex-Zh-Launcher-Installer-v'"$Version"'.exe | Format-List Status, SignerCertificate'
+$lines += ('Get-FileHash .\Codex-Zh-Launcher-Installer-v' + $Version + '.exe -Algorithm SHA256')
+$lines += ('Get-AuthenticodeSignature .\Codex-Zh-Launcher-Installer-v' + $Version + '.exe | Format-List Status, SignerCertificate')
 $lines += '```'
 $lines += ""
 $lines += "详见 [RELEASE_VERIFICATION.md](RELEASE_VERIFICATION.md)。"
