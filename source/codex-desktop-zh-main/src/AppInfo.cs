@@ -4,7 +4,7 @@ namespace CodexZhLauncher
 {
     internal static class AppInfo
     {
-        public const string Version = "0.8.1";
+        public const string Version = "0.8.2";
 
         /// <summary>
         /// 当前构建所基于的上游启动器版本。

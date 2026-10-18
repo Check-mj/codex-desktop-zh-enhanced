@@ -63,14 +63,16 @@ if (-not $cert.HasPrivateKey) {
 if (-not $ExpectedThumbprint) {
     $cerPath = Join-Path $base 'CodexZhLauncher.cer'
     if ((Test-Path $cerPath) -and -not $isCi) {
+        $cerCert = $null
         try {
             $cerCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($cerPath)
-            if ($cerCert.Thumbprint -eq $cert.Thumbprint) {
-                $ExpectedThumbprint = $cerCert.Thumbprint
-            } else {
-                Write-Warning "公钥文件与私钥证书指纹不一致（公钥: $($cerCert.Thumbprint) / 私钥: $($cert.Thumbprint)），将使用当前私钥证书。"
-            }
         } catch {
+        }
+        if ($cerCert) {
+            if ($cerCert.Thumbprint -ne $cert.Thumbprint) {
+                throw "证书身份不一致：公钥文件指纹 $($cerCert.Thumbprint) 与私钥证书指纹 $($cert.Thumbprint) 不符。为避免以错误身份发布，已中止。如确认要轮换证书，请先删除旧公钥文件 CodexZhLauncher.cer 后重试。"
+            }
+            $ExpectedThumbprint = $cerCert.Thumbprint
         }
     }
 }
