@@ -193,6 +193,9 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 - [隐私与网络行为说明](docs/PRIVACY_AND_NETWORK.md)
 - [卸载与证书清理](docs/UNINSTALL.md)
 - [第三方审查范围与已知问题](docs/AUDIT_SCOPE.md)
+- [证书与信任配置说明](docs/CERTIFICATE.md)
+- [安装行为说明](docs/INSTALL_BEHAVIOR.md)
+- [核心功能回归测试记录](docs/FUNCTIONAL_TESTS.md)
 
 ## 🙏 致谢与许可
 
