@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +37,7 @@ jobs:
 
   release:
     needs: build
+    timeout-minutes: 15
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     steps:

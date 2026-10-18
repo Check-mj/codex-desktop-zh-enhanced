@@ -13,6 +13,7 @@ $base = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (-not $Path) { $Path = Join-Path $base 'Codex-Zh-Launcher-Windows-x64.exe' }
 if (-not (Test-Path $Path)) { throw "找不到要签名的文件: $Path" }
 
+$isCi = ($env:CI -eq 'true' -or $env:GITHUB_ACTIONS -eq 'true')
 $subject = 'CN=Codex Zh Launcher (Self-Signed), O=Codex Hanhua'
 $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue |
     Where-Object { $_.Subject -eq $subject } |
@@ -33,9 +34,13 @@ if (-not $cert) {
 
     $cerPath = Join-Path $base 'CodexZhLauncher.cer'
     Export-Certificate -Cert $cert -FilePath $cerPath | Out-Null
-    certutil -user -addstore Root $cerPath | Out-Null
-    certutil -user -addstore TrustedPublisher $cerPath | Out-Null
-    Write-Host "已创建证书并导入本机信任存储：" -ForegroundColor Green
+    if (-not $isCi) {
+        certutil -user -addstore Root $cerPath | Out-Null
+        certutil -user -addstore TrustedPublisher $cerPath | Out-Null
+        Write-Host "已创建证书并导入本机信任存储：" -ForegroundColor Green
+    } else {
+        Write-Host "CI 环境：跳过证书信任导入，仅对文件签名"
+    }
     Write-Host "  证书文件: $cerPath"
     Write-Host "  （换电脑使用时，先双击导入这个 .cer 到“受信任的根证书颁发机构”和“受信任的发布者”）"
 }
