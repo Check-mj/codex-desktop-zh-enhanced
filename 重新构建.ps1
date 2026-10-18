@@ -142,10 +142,32 @@ if (-not (Test-Path $dist)) { throw "构建失败：没有生成 $dist（旧版�
 $signScript = Join-Path $base 'sign.ps1'
 if (Test-Path $signScript) {
     Write-Host "[3/5] 签名构建产物..." -ForegroundColor Yellow
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $signScript -Path $dist
-    if (-not (Test-Path $dist)) { throw "签名后产物丢失" }
+    $cerPath = Join-Path $base 'CodexZhLauncher.cer'
+    $expectedTp = ''
+    if (Test-Path $cerPath) {
+        try {
+            $expectedTp = (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($cerPath)).Thumbprint
+        } catch {
+        }
+    }
+    $signArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $signScript, '-Path', $dist)
+    if ($expectedTp) { $signArgs += @('-ExpectedThumbprint', $expectedTp) }
+    & powershell.exe @signArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "签名脚本失败（退出码 $LASTEXITCODE），已中止部署；主程序未改动。"
+    }
+    if (-not (Test-Path $dist)) { throw "签名后产物丢失，已中止部署；主程序未改动。" }
+
+    # 独立复核签名状态与身份，不信任子进程的退出码本身
+    $sigCheck = Get-AuthenticodeSignature $dist
+    if (-not $sigCheck.SignerCertificate) { throw "签名校验失败：无签名证书，已中止部署；主程序未改动。" }
+    if ($sigCheck.Status -ne 'Valid') { throw "签名校验失败：状态 $($sigCheck.Status)，已中止部署；主程序未改动。" }
+    if ($expectedTp -and $sigCheck.SignerCertificate.Thumbprint -ne $expectedTp) {
+        throw "签名校验失败：证书指纹与预期不一致，已中止部署；主程序未改动。"
+    }
+    Write-Host "      签名校验通过：$($sigCheck.Status) / $($sigCheck.SignerCertificate.Thumbprint)"
 } else {
-    Write-Host "[3/5] 跳过签名（找不到 sign.ps1）" -ForegroundColor DarkGray
+    throw "找不到 sign.ps1：拒绝在未签名的情况下部署。"
 }
 
 # ---------- 4) 备份并部署 ----------

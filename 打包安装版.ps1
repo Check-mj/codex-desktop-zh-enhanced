@@ -189,8 +189,31 @@ if (Test-Path $exeTmp) {
 Write-Host "[3/4] 签名安装程序..." -ForegroundColor Yellow
 $signScript = Join-Path $base 'sign.ps1'
 if ((Test-Path $signScript) -and (Test-Path $exePath)) {
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $signScript -Path $exePath | Out-Null
-    Write-Host "      已签名"
+    $signArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $signScript, '-Path', $exePath)
+    $cerPath = Join-Path $base 'CodexZhLauncher.cer'
+    $expectedTp = ''
+    if ((-not $env:CI) -and (Test-Path $cerPath)) {
+        try {
+            $expectedTp = (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($cerPath)).Thumbprint
+            if ($expectedTp) { $signArgs += @('-ExpectedThumbprint', $expectedTp) }
+        } catch {
+        }
+    }
+    if ($env:CI) { $signArgs += '-AllowUntrusted' }
+    & powershell.exe @signArgs
+    if ($LASTEXITCODE -ne 0) { throw "安装包签名失败（退出码 $LASTEXITCODE），已中止打包。" }
+    $sigCheck = Get-AuthenticodeSignature $exePath
+    if (-not $sigCheck.SignerCertificate) { throw "安装包签名校验失败：无签名证书，已中止打包。" }
+    if ($sigCheck.Status -notin @('Valid', 'UntrustedRoot', 'UnknownError')) {
+        throw "安装包签名状态异常：$($sigCheck.Status)，已中止打包。"
+    }
+    if ((-not $env:CI) -and $sigCheck.Status -ne 'Valid') {
+        throw "本机打包要求签名状态为 Valid，实际为 $($sigCheck.Status)，已中止打包。"
+    }
+    if ($expectedTp -and $sigCheck.SignerCertificate.Thumbprint -ne $expectedTp) {
+        throw "安装包签名指纹与预期不一致，已中止打包。"
+    }
+    Write-Host "      已签名并通过校验：$($sigCheck.Status)"
 }
 
 # ---------- 汇总 ----------

@@ -167,17 +167,39 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 └─ CodexZhLauncher.cer              公钥证书（无私钥）
 ```
 
-## 🔐 安全说明
+## 🔐 安全与信任（运行前请先读）
 
-- 程序使用**自签名证书**签名，不是公共 CA 证书：
-  安装程序会将其导入当前用户的 `Root` / `TrustedPublisher`，以便 Windows 显示为可信；
-  这**不能保证**消除 SmartScreen 警告（SmartScreen 与签名验证是不同机制）。
-- 仓库中只包含**公钥证书** `CodexZhLauncher.cer`，**不包含任何私钥**。
-- 卸载脚本默认**不删除**证书；彻底清理证书的方法见 `docs/` 文档。
-- 网络访问仅限：GitHub 版本检查、一键重建下载上游源码；无遥测、不上传用户数据。
-- 汉化方式为本地运行时注入，**不修改 Codex 安装文件、不替换 app.asar**。
-- 详细设计、信任边界与已知限制见
-  [`docs/SECURITY_DESIGN.md`](docs/SECURITY_DESIGN.md)。
+**证书是什么**：本项目用一张**自签名代码签名证书**给程序和安装包签名
+（Subject `CN=Codex Zh Launcher (Self-Signed), O=Codex Hanhua`，
+官方发布身份指纹 `76134CBD2706FD88D9FAD973CED58B3E32AC1DED`）。
+仓库只包含**公钥** `CodexZhLauncher.cer`，**不包含私钥**。
+
+**为什么安装时要导入证书**：安装程序会把这张证书导入**当前用户**的
+`Root`（信任锚）和 `TrustedPublisher`（可信发布者），
+目的是让 Windows 把签名显示为有效/可信。它只影响当前 Windows 用户，
+不修改系统级证书存储、组策略或 Defender 设置。
+
+**它不能做什么（请勿误解）**：
+
+- 不是公共 CA 证书；**导入证书不能保证消除 SmartScreen 警告**
+  （SmartScreen 使用独立于 Authenticode 的信誉机制）。
+- 不会让 Codex 或第三方软件获得任何额外权限；
+- 不会修改 Codex 安装文件（不替换 `app.asar`）；
+- 不会上传数据：网络访问仅限 GitHub 版本检查、一键重建下载上游源码。
+
+**如何核对**：
+
+```powershell
+Get-AuthenticodeSignature .\Codex-Zh-Launcher-Windows-x64.exe |
+    Format-List Status, SignerCertificate
+```
+
+**如何撤销**：普通卸载**保留**证书；`卸载.cmd -Thorough` 会按证书指纹
+精确移除 `My`/`Root`/`TrustedPublisher` 中的对应证书，不会清空存储区。
+
+详细说明见 [证书与信任配置](docs/CERTIFICATE.md)、
+[安装行为](docs/INSTALL_BEHAVIOR.md)、
+[安全设计](docs/SECURITY_DESIGN.md)。
 
 ## 📚 安全与信任文档
 

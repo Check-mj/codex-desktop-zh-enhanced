@@ -13,6 +13,7 @@
 ## 2. 签名与完整性
 
 - [ ] Authenticode 签名验证通过（`Get-AuthenticodeSignature` 无 `HashMismatch`）
+- [ ] 若签名失败：构建/打包必须中止，不得产出未签名发布物（`sign.ps1` 抛异常 + 父脚本校验退出码/状态/指纹）
 - [ ] 签名者与预期身份一致（`CN=Codex Zh Launcher (Self-Signed), O=Codex Hanhua`）
 - [ ] 证书指纹正确（官方发布身份 `76134CBD2706FD88D9FAD973CED58B3E32AC1DED`）
 - [ ] SHA-256 已生成并写入发布清单

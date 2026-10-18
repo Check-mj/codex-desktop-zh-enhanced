@@ -13,6 +13,7 @@
 param(
     [switch]$Thorough,
     [switch]$KeepLogs,
+    [switch]$KeepProgramDir,
     [switch]$DryRun,
     [switch]$NoPause
 )
@@ -139,6 +140,8 @@ if (-not $Thorough) {
 # 6) 程序目录（仅彻底卸载；延迟删除，避免删除正在运行的脚本）
 if (-not $Thorough) {
     $result['程序目录'] = "保留: $base"
+} elseif ($KeepProgramDir) {
+    $result['程序目录'] = "保留（-KeepProgramDir）: $base"
 } elseif ($DryRun) {
     $result['程序目录'] = "将删除: $base（DryRun）"
 } else {
