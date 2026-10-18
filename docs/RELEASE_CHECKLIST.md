@@ -42,7 +42,8 @@
 ## 5. 发布操作
 
 - [ ] 从干净环境重新执行一次安装 + 卸载
-- [ ] 生成发布清单（`tools/make-release-manifest.ps1`）
+- [ ] 生成发布清单（`tools/make-release-manifest.ps1`），区分“发布源码提交”与“实现改动提交”
+- [ ] T9–T12 故障注入测试记录有效（脚本有变化则重跑，见 `docs/FUNCTIONAL_TESTS.md`）
 - [ ] 记录构建时间、Windows 版本、Codex 版本
 - [ ] 上传 Release 资产（安装包 EXE/ZIP、SHA256SUMS.txt、发布清单）
 - [ ] 在 Release 说明中写明验证方法（链接 `docs/RELEASE_VERIFICATION.md`）

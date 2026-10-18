@@ -10,14 +10,25 @@
 | 项目 | 值 |
 |---|---|
 | 项目版本 | v0.8.4 |
-| 源码 commit | `202a0455e05e45a83a68eb79bcd161bf81874280` |
+| 发布源码提交（发布物构建所用） | `202a0455e05e45a83a68eb79bcd161bf81874280` |
 | 上游项目 | shibaweidu/codex-desktop-zh v0.7.7 |
 | 上游 commit | `82136f547a9bca582fc6d9ed9f37b6600de7e13a` |
 | 产物构建方式 | 本机运行 重新构建.ps1 / 打包安装版.ps1（正式签名证书） |
 | 本地源码树 SHA-256（与仓库 commit 内容一致） | `46FE15DDCFF8F0910459138D9F99421853C35D4172841B0FA40D5ED94086041B` |
 | CI 验证运行（校验源码 commit 的构建/签名流程，非发布物构建） | https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39150742081 |
-| 清单生成时间 | 2026-10-19 01:42:54 +08:00 |
+| 清单生成时间 | 2026-10-19 01:47:10 +08:00 |
 | 本地构建系统 | Microsoft Windows 11 专业版 10.0.26300 |
+
+## 提交记录
+
+| 类型 | 提交 | 说明 |
+|---|---|---|
+| 发布源码提交 | [`202a0455`](https://github.com/Check-mj/codex-desktop-zh-enhanced/commit/202a0455e05e45a83a68eb79bcd161bf81874280) | 发布物由该提交的源码构建 |
+| 实现改动提交 | [`1168b908`](https://github.com/Check-mj/codex-desktop-zh-enhanced/commit/1168b90819d4024c49cdce569785bde988545ed7) | 该版本包含的功能/可靠性改动 |
+| 实现改动提交 | [`202a0455`](https://github.com/Check-mj/codex-desktop-zh-enhanced/commit/202a0455e05e45a83a68eb79bcd161bf81874280) | 该版本包含的功能/可靠性改动 |
+
+> 发布源码提交 = 构建发布物所用的仓库提交（可能包含源码对齐、版本号等收尾改动）；
+> 实现改动提交 = 该版本实际包含的代码改动；仅文档/清单提交不列入。
 
 ## 文件哈希（SHA-256）
 

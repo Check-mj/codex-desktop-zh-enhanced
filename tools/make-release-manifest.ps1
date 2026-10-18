@@ -21,7 +21,9 @@ param(
     [string]$OutFile = '',
     [string]$ExpectedThumbprint = '76134CBD2706FD88D9FAD973CED58B3E32AC1DED',
     [string]$BuildMode = '本机运行 重新构建.ps1 / 打包安装版.ps1（正式签名证书）',
-    [string]$SourceTreeHash = ''
+    [string]$SourceTreeHash = '',
+    [string]$ImplementationCommits = '',
+    [string]$RepoUrl = 'https://github.com/Check-mj/codex-desktop-zh-enhanced'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -50,7 +52,7 @@ $lines += ""
 $lines += "| 项目 | 值 |"
 $lines += "|---|---|"
 $lines += "| 项目版本 | v$Version |"
-$lines += "| 源码 commit | ``$SourceCommit`` |"
+$lines += "| 发布源码提交（发布物构建所用） | ``$SourceCommit`` |"
 if ($UpstreamVersion) { $lines += "| 上游项目 | shibaweidu/codex-desktop-zh v$UpstreamVersion |" }
 if ($UpstreamCommit) { $lines += "| 上游 commit | ``$UpstreamCommit`` |" }
 $lines += "| 产物构建方式 | $BuildMode |"
@@ -58,6 +60,21 @@ if ($SourceTreeHash) { $lines += "| 本地源码树 SHA-256（与仓库 commit �
 if ($WorkflowUrl) { $lines += "| CI 验证运行（校验源码 commit 的构建/签名流程，非发布物构建） | $WorkflowUrl |" }
 $lines += "| 清单生成时间 | $now |"
 $lines += "| 本地构建系统 | $($os.Caption) $($os.Version) |"
+$lines += ""
+$lines += "## 提交记录"
+$lines += ""
+$lines += "| 类型 | 提交 | 说明 |"
+$lines += "|---|---|---|"
+$lines += "| 发布源码提交 | [``$($SourceCommit.Substring(0, 8))``]($RepoUrl/commit/$SourceCommit) | 发布物由该提交的源码构建 |"
+$implList = @()
+if ($ImplementationCommits) { $implList = $ImplementationCommits -split '[,\s]+' | Where-Object { $_ } }
+foreach ($c in $implList) {
+    $short = if ($c.Length -gt 8) { $c.Substring(0, 8) } else { $c }
+    $lines += "| 实现改动提交 | [``$short``]($RepoUrl/commit/$c) | 该版本包含的功能/可靠性改动 |"
+}
+$lines += ""
+$lines += "> 发布源码提交 = 构建发布物所用的仓库提交（可能包含源码对齐、版本号等收尾改动）；"
+$lines += "> 实现改动提交 = 该版本实际包含的代码改动；仅文档/清单提交不列入。"
 $lines += ""
 $lines += "## 文件哈希（SHA-256）"
 $lines += ""
