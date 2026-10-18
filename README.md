@@ -100,8 +100,6 @@ powershell -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
 
 ## 🔍 验证发布文件
 
-每个发布物都可以独立验证，无需信任作者：
-
 ```powershell
 # 1. 核对哈希（与 Release 说明里的 SHA-256 对比）
 Get-FileHash .\Codex-Zh-Launcher-Installer-v0.8.0.exe -Algorithm SHA256
