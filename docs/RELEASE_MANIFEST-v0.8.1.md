@@ -7,11 +7,11 @@
 | 项目 | 值 |
 |---|---|
 | 项目版本 | v0.8.1 |
-| 源码 commit | `dde786f58a8b197e260fc6f5f442b2cf6c5257e2` |
+| 源码 commit | `15b75f88c0fa62619deb80bdd9a081d9c01fed3f` |
 | 上游项目 | shibaweidu/codex-desktop-zh v0.7.7 |
 | 上游 commit | `82136f547a9bca582fc6d9ed9f37b6600de7e13a` |
-| 构建工作流 | https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39145654557 |
-| 生成时间 | 2026-10-19 00:35:05 +08:00 |
+| 构建工作流 | https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39146948498 |
+| 生成时间 | 2026-10-19 00:52:47 +08:00 |
 | 构建系统 | Microsoft Windows 11 专业版 10.0.26300 |
 
 ## 文件哈希（SHA-256）
@@ -19,8 +19,8 @@
 | 文件 | SHA-256 |
 |---|---|
 | 启动器 Codex-Zh-Launcher-Windows-x64.exe | `BA8E5B8958D9DF9D649AA5CB86B1E36F6491ECB998296951D5AB4D09041981AA` |
-| 安装包 .exe | `C055761D8CC240DD347CFA1BBD23883DC649B6D7A21D3A4399593BF31F19ABDC` |
-| 安装包 .zip | `B2AF44A1C7C0C0F559BF6CFABD3CA8DE1CE631B372428A34C564CF0380428E34` |
+| 安装包 .exe | `431B9B1296E7325CC59DD1C23F27144D328CED5453DC12F6316A91B8CA579BC3` |
+| 安装包 .zip | `3CCFB4175B39EA955E3477268EACFB824A3EE3CE1890B68346135ED568B926C2` |
 
 ## 签名信息
 
