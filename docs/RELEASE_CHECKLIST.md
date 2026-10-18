@@ -42,7 +42,7 @@
 ## 5. 发布操作
 
 - [ ] 从干净环境重新执行一次安装 + 卸载
-- [ ] 生成发布清单（`tools/make-release-manifest.ps1`），区分“发布源码提交”与“实现改动提交”
+- [ ] 生成发布清单（`tools/make-release-manifest.ps1`），区分“发布源码提交 / 实现改动提交 / 构建发布配套提交”，并记录 CI 验证运行（head SHA + 结论）
 - [ ] T9–T12 故障注入测试记录有效（脚本有变化则重跑，见 `docs/FUNCTIONAL_TESTS.md`）
 - [ ] 记录构建时间、Windows 版本、Codex 版本
 - [ ] 上传 Release 资产（安装包 EXE/ZIP、SHA256SUMS.txt、发布清单）

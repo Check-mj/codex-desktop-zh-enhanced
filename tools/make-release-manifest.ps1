@@ -23,6 +23,8 @@ param(
     [string]$BuildMode = '本机运行 重新构建.ps1 / 打包安装版.ps1（正式签名证书）',
     [string]$SourceTreeHash = '',
     [string]$ImplementationCommits = '',
+    [string]$ReleaseChoreCommits = '',
+    [string]$CiRuns = '',
     [string]$RepoUrl = 'https://github.com/Check-mj/codex-desktop-zh-enhanced'
 )
 
@@ -72,9 +74,36 @@ foreach ($c in $implList) {
     $short = if ($c.Length -gt 8) { $c.Substring(0, 8) } else { $c }
     $lines += "| 实现改动提交 | [``$short``]($RepoUrl/commit/$c) | 该版本包含的功能/可靠性改动 |"
 }
+$choreList = @()
+if ($ReleaseChoreCommits) { $choreList = $ReleaseChoreCommits -split '[,\s]+' | Where-Object { $_ } }
+foreach ($c in $choreList) {
+    $short = if ($c.Length -gt 8) { $c.Substring(0, 8) } else { $c }
+    $lines += "| 构建/发布配套提交 | [``$short``]($RepoUrl/commit/$c) | 源码对齐、版本号、清单等收尾改动，不含功能变化 |"
+}
 $lines += ""
-$lines += "> 发布源码提交 = 构建发布物所用的仓库提交（可能包含源码对齐、版本号等收尾改动）；"
-$lines += "> 实现改动提交 = 该版本实际包含的代码改动；仅文档/清单提交不列入。"
+$lines += "> 发布源码提交 = 构建发布物所用的仓库提交；实现改动提交 = 该版本实际包含的功能/可靠性改动；"
+$lines += "> 构建/发布配套提交 = 源码对齐、版本号、清单等非功能性收尾改动；仅文档提交不列入。"
+$lines += ""
+$lines += "## CI 验证记录"
+$lines += ""
+if ($CiRuns) {
+    $lines += "| 运行 | head SHA | 结论 | 用途/说明 |"
+    $lines += "|---|---|---|---|"
+    foreach ($entry in ($CiRuns -split ';')) {
+        if (-not $entry.Trim()) { continue }
+        $parts = $entry -split '\|'
+        if ($parts.Count -ge 4) {
+            $num = $parts[0].Trim(); $sha = $parts[1].Trim(); $concl = $parts[2].Trim(); $purpose = $parts[3].Trim()
+            $url = if ($parts.Count -ge 5) { $parts[4].Trim() } else { '' }
+            $numText = if ($url) { "[$num]($url)" } else { $num }
+            $lines += "| $numText | ``$sha`` | $concl | $purpose |"
+        }
+    }
+} else {
+    $lines += "未提供 CI 验证记录。"
+}
+$lines += ""
+$lines += "> CI 运行仅用于验证同一源码 commit 的构建/签名流程；CI 产物使用开发验证签名，不作为发布物。"
 $lines += ""
 $lines += "## 文件哈希（SHA-256）"
 $lines += ""
