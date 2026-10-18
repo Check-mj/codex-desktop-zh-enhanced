@@ -36,7 +36,7 @@ $files = @(
     'CodexZhLauncher.cer',
     'sign.ps1',
     '重新构建.cmd', '重新构建.ps1',
-    '卸载.cmd', '卸载.ps1',
+    '卸载.cmd', '卸载.ps1', 'uninstall.ps1', 'uninstall.cmd',
     '导入证书.cmd', '导入证书.ps1',
     'install.cmd', 'install.ps1', '安装.cmd',
     'SHA256SUMS.txt'

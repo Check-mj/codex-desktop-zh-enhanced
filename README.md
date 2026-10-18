@@ -131,8 +131,14 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 
 ## 🗑 卸载
 
-运行安装目录下的 `卸载.cmd`：清除开机自启、快捷方式、日志与配置。
-程序目录需手动删除（不会触碰 Codex 本体）。
+运行安装目录下的 `卸载.cmd`，有两种模式：
+
+- **普通卸载（默认）**：停止进程、删除开机自启/快捷方式/日志与配置；**保留证书与程序目录**。
+- **彻底卸载（`-Thorough`）**：额外按证书指纹精确移除项目证书，并删除程序目录。
+
+支持 `-DryRun` 演练（只显示将执行的操作，不做修改）。
+详细清理项、结果说明与手动清理步骤见 [`docs/UNINSTALL.md`](docs/UNINSTALL.md)。
+不会触碰 Codex 本体与账号数据。
 
 ## 🛠 技术原理
 
@@ -184,6 +190,7 @@ powershell -File tools\verify-release.ps1 -Path .\xxx.exe `
 - [更新与回滚说明](docs/UPDATE_AND_ROLLBACK.md)
 - [运行时行为与测试记录](docs/RUNTIME_BEHAVIOR.md)
 - [隐私与网络行为说明](docs/PRIVACY_AND_NETWORK.md)
+- [卸载与证书清理](docs/UNINSTALL.md)
 
 ## 🙏 致谢与许可
 

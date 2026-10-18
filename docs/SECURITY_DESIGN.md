@@ -39,7 +39,9 @@ Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert |
 - 证书仅用于**代码签名**（EXE 的 Authenticode），不用于加密、不用于 TLS、不签 MSIX。
 - 私钥只存在于签名机器的当前用户证书存储，**从不提交到仓库**。
 - 仓库内只提交公钥证书 `CodexZhLauncher.cer`。
-- 卸载脚本**不会自动删除**证书（阶段 5 增加可选的按指纹清理）。
+- 卸载策略（阶段 5）：普通卸载**保留**证书；彻底卸载（`-Thorough`）按证书指纹
+  从 `My` / `Root` / `TrustedPublisher` 精确删除，不按 Subject 模糊匹配、不清空存储区。
+  详见 [`UNINSTALL.md`](UNINSTALL.md)。
 
 ### 1.4 签名身份策略（开发 vs 发布）
 
@@ -139,7 +141,7 @@ Codex 由启动器启动并运行时，本机同用户权限的进程可连接�
 - [x] 固定上游 commit 与源码哈希、失败回滚（阶段 3）
 - [x] 发布物签名校验（CI）与发布清单/哈希清单（阶段 2）
 - [x] CI 第三方 Actions 固定到 commit SHA（阶段 2）
-- [ ] 卸载时按指纹清理证书（阶段 5）
+- [x] 卸载时按指纹清理证书（阶段 5）
 - [x] 调试端口行为实测与风险记录、日志脱敏（阶段 4）
 - [ ] 第三方安全审查（阶段 6）
 
