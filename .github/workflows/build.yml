@@ -14,24 +14,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build launcher
-        shell: powershell
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File source/codex-desktop-zh-main/build.ps1
+        shell: pwsh
+        run: ./source/codex-desktop-zh-main/build.ps1
 
       - name: Verify build output
-        shell: powershell
+        shell: pwsh
         run: |
           $exe = 'source/codex-desktop-zh-main/dist/Codex-Zh-Launcher-Windows-x64.exe'
-          if (-not (Test-Path $exe)) { throw "构建失败：未生成 $exe" }
-          Get-Item $exe | Select-Object Name, Length, LastWriteTime | Format-List
+          if (-not (Test-Path $exe)) { throw "build failed: $exe not found" }
+          Get-Item $exe | Format-List Name, Length
 
       - name: Package installers
-        shell: powershell
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
+        shell: pwsh
+        run: ./打包安装版.ps1 -NoPause
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: codex-zh-launcher-installer
+          name: installer
           path: 发布/*
 
   release:
@@ -45,7 +45,7 @@ jobs:
       - name: Download installer artifact
         uses: actions/download-artifact@v4
         with:
-          name: codex-zh-launcher-installer
+          name: installer
           path: 发布
 
       - name: Create GitHub Release
