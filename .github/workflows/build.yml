@@ -9,28 +9,49 @@ on:
   pull_request:
   workflow_dispatch:
 
+# 最小权限：仅需读取仓库内容
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Build launcher
         shell: pwsh
         run: ./source/codex-desktop-zh-main/build.ps1
 
-      - name: Verify build output
+      - name: Verify version consistency
         shell: pwsh
         run: |
+          $appInfo = Get-Content 'source/codex-desktop-zh-main/src/AppInfo.cs' -Raw
+          if ($appInfo -notmatch 'Version\s*=\s*"([0-9]+\.[0-9]+\.[0-9]+)"') {
+            throw 'cannot read version from AppInfo.cs'
+          }
+          $sourceVersion = $Matches[1]
           $exe = 'source/codex-desktop-zh-main/dist/Codex-Zh-Launcher-Windows-x64.exe'
           if (-not (Test-Path $exe)) { throw "build failed: $exe not found" }
-          Get-Item $exe | Format-List Name, Length
+          $fileVersion = (Get-Item $exe).VersionInfo.FileVersion
+          Write-Host "source version=$sourceVersion  file version=$fileVersion"
+          if (-not $fileVersion.StartsWith($sourceVersion)) {
+            throw "version mismatch: source=$sourceVersion file=$fileVersion"
+          }
 
       - name: Package installers
         shell: pwsh
         run: ./打包安装版.ps1 -NoPause
+
+      - name: Generate SHA-256 manifest
+        shell: pwsh
+        run: |
+          Get-ChildItem '发布' -File | ForEach-Object {
+            "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash, $_.Name
+          } | Set-Content '发布\SHA256SUMS.txt' -Encoding UTF8
+          Get-Content '发布\SHA256SUMS.txt'
 
       - name: Verify signatures (dev build, signer identity, trust status may differ)
         shell: pwsh
@@ -46,7 +67,7 @@ jobs:
           }
 
       - name: Upload installer artifact (dev build, not an official release)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dev-installer
           path: 发布/*
