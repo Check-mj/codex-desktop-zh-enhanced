@@ -45,10 +45,15 @@ if (-not $cert) {
     Write-Host "  （换电脑使用时，先双击导入这个 .cer 到“受信任的根证书颁发机构”和“受信任的发布者”）"
 }
 
-try {
-    $signature = Set-AuthenticodeSignature -FilePath $Path -Certificate $cert -HashAlgorithm SHA256 -TimestampServer 'http://timestamp.digicert.com'
-} catch {
+if ($isCi) {
+    # CI 无人值守：不加时间戳，避免网络/证书链导致 UnknownError
     $signature = Set-AuthenticodeSignature -FilePath $Path -Certificate $cert -HashAlgorithm SHA256
+} else {
+    try {
+        $signature = Set-AuthenticodeSignature -FilePath $Path -Certificate $cert -HashAlgorithm SHA256 -TimestampServer 'http://timestamp.digicert.com'
+    } catch {
+        $signature = Set-AuthenticodeSignature -FilePath $Path -Certificate $cert -HashAlgorithm SHA256
+    }
 }
 
 if ($signature.Status -eq 'Valid') {
