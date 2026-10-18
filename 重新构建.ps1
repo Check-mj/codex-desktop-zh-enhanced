@@ -192,34 +192,62 @@ try {
     }
     Write-Host "      签名校验通过：$($sigCheck.Status) / $($sigCheck.SignerCertificate.Thumbprint)"
 
-    # ================= 4) 备份并部署（先替换 exe，再交换源码，失败回滚） =================
+    # ================= 4) 备份并部署（同卷临时文件 + 原子替换；失败可回滚） =================
+    $exeBackupPath = ''
+    $exeReplaced = $false
+    $backupDir = ''
     if ($NoDeploy) {
         Write-Host "[4/6] 跳过替换主程序（-NoDeploy）" -ForegroundColor DarkGray
     } else {
-        Write-Host "[4/6] 备份旧版本并部署..." -ForegroundColor Yellow
-        $backupDir = ''
-        if (Test-Path $target) {
-            $backupDir = Join-Path $base ("backups\pre-update-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
-            New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
-            Copy-Item $target (Join-Path $backupDir 'Codex-Zh-Launcher-Windows-x64.exe') -Force
-            if (Test-Path (Join-Path $base 'SHA256SUMS.txt')) {
-                Copy-Item (Join-Path $base 'SHA256SUMS.txt') $backupDir -Force -ErrorAction SilentlyContinue
-            }
-            Write-Host "      旧版本已备份: $backupDir"
+        Write-Host "[4/6] 备份旧版本并部署（原子替换）..." -ForegroundColor Yellow
+        $backupDir = Join-Path $base ("backups\pre-update-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+        New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
+        if (Test-Path (Join-Path $base 'SHA256SUMS.txt')) {
+            Copy-Item (Join-Path $base 'SHA256SUMS.txt') $backupDir -Force -ErrorAction SilentlyContinue
         }
 
+        # 先在同目录生成临时文件并校验，避免复制不完整时覆盖正式 exe
+        $tempTarget = "$target.new"
+        Remove-Item $tempTarget -Force -ErrorAction SilentlyContinue
         try {
-            Copy-Item $dist $target -Force
+            Copy-Item $dist $tempTarget -Force
         } catch {
+            Remove-Item $tempTarget -Force -ErrorAction SilentlyContinue
+            throw "生成待部署文件失败：$($_.Exception.Message)。旧版本未改动。"
+        }
+        $distHash = (Get-FileHash $dist -Algorithm SHA256).Hash
+        $tmpHash = (Get-FileHash $tempTarget -Algorithm SHA256).Hash
+        $tmpSig = Get-AuthenticodeSignature $tempTarget
+        if ($tmpHash -ne $distHash) {
+            Remove-Item $tempTarget -Force -ErrorAction SilentlyContinue
+            throw "待部署文件哈希校验失败（可能复制不完整），已中止。旧版本未改动。"
+        }
+        if (-not $tmpSig.SignerCertificate -or $tmpSig.Status -ne 'Valid' -or ($expectedTp -and $tmpSig.SignerCertificate.Thumbprint -ne $expectedTp)) {
+            Remove-Item $tempTarget -Force -ErrorAction SilentlyContinue
+            throw "待部署文件签名校验失败（状态 $($tmpSig.Status)），已中止。旧版本未改动。"
+        }
+
+        # 同卷原子替换：旧 exe 直接移入备份路径
+        try {
+            if (Test-Path $target) {
+                $exeBackupPath = Join-Path $backupDir 'Codex-Zh-Launcher-Windows-x64.exe'
+                [System.IO.File]::Replace($tempTarget, $target, $exeBackupPath)
+            } else {
+                Move-Item $tempTarget $target -Force
+            }
+            $exeReplaced = $true
+        } catch {
+            Remove-Item $tempTarget -Force -ErrorAction SilentlyContinue
             throw "替换主程序失败（可能正在运行）：$($_.Exception.Message)。旧版本未改动。"
         }
+        Remove-Item $tempTarget -Force -ErrorAction SilentlyContinue
         if (Test-Path (Join-Path $buildSourceRoot 'dist\SHA256SUMS.txt')) {
             Copy-Item (Join-Path $buildSourceRoot 'dist\SHA256SUMS.txt') (Join-Path $base 'SHA256SUMS.txt') -Force
         }
-        Write-Host "      主程序已更新"
+        Write-Host "      主程序已更新（原子替换；旧版本备份: $backupDir）"
     }
 
-    # ================= 5) 交换源码目录（仅 -Update 且临时构建成功） =================
+    # ================= 5) 交换源码目录（失败时同时回滚 exe 与源码） =================
     if ($Update) {
         Write-Host "[5/6] 更新本地源码目录..." -ForegroundColor Yellow
         $sourceBackup = Join-Path $base ("backups\source-pre-update-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
@@ -235,10 +263,50 @@ try {
             Write-Host "      源码已更新（旧源码备份: $sourceBackup）"
             $stagingRoot = ''
         } catch {
+            $swapError = $_.Exception.Message
+            $rollbackOk = $true
+
+            # 1) 恢复旧源码
             if ($oldMoved -and (Test-Path $sourceBackup)) {
+                if (Test-Path $srcRoot) {
+                    Move-Item $srcRoot ($srcRoot + '.partial') -Force -ErrorAction SilentlyContinue
+                }
                 Move-Item $sourceBackup $srcRoot -Force -ErrorAction SilentlyContinue
+                if (-not (Test-Path (Join-Path $srcRoot 'build.ps1'))) { $rollbackOk = $false }
+            } elseif (-not $oldMoved) {
+                if (-not (Test-Path $srcRoot)) { $rollbackOk = $false }
             }
-            throw "更新源码目录失败：$($_.Exception.Message)。已尝试恢复旧源码；主程序已更新为已签名的新版本。"
+
+            # 2) 恢复旧 exe（若已替换）
+            if ($exeReplaced -and $exeBackupPath -and (Test-Path $exeBackupPath)) {
+                try {
+                    $restoreTemp = "$target.restore"
+                    Remove-Item $restoreTemp -Force -ErrorAction SilentlyContinue
+                    Copy-Item $exeBackupPath $restoreTemp -Force
+                    if (Test-Path $target) {
+                        $restoreBak = "$restoreTemp.bak"
+                        Remove-Item $restoreBak -Force -ErrorAction SilentlyContinue
+                        [System.IO.File]::Replace($restoreTemp, $target, $restoreBak)
+                        Remove-Item $restoreBak -Force -ErrorAction SilentlyContinue
+                    } else {
+                        Move-Item $restoreTemp $target -Force
+                    }
+                    Remove-Item $restoreTemp -Force -ErrorAction SilentlyContinue
+                    $oldHash = (Get-FileHash $exeBackupPath -Algorithm SHA256).Hash
+                    $nowHash = (Get-FileHash $target -Algorithm SHA256).Hash
+                    if ($oldHash -ne $nowHash) { $rollbackOk = $false }
+                } catch {
+                    $rollbackOk = $false
+                }
+            } elseif ($exeReplaced) {
+                $rollbackOk = $false
+            }
+
+            if ($rollbackOk) {
+                throw "更新源码目录失败：$swapError。已完整回滚（旧 exe 与旧源码均已恢复）。"
+            } else {
+                throw "更新源码目录失败：$swapError。自动回滚未完全成功！请手动恢复：旧 exe 备份见 $backupDir，旧源码备份见 $sourceBackup。"
+            }
         }
     } else {
         Write-Host "[5/6] 源码目录未变更（非 -Update 模式）" -ForegroundColor DarkGray
