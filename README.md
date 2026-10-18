@@ -1,16 +1,38 @@
-# Codex 中文启动器（增强版）
+# Codex 中文启动器 · 完美功能增强版
 
-把 **Codex Desktop（ChatGPT 桌面版）** 的界面变成中文，并解决“每次都要手动点汉化工具”的麻烦：
-**开机自动以中文启动、点原版图标也是中文、界面里一键重建更新。**
+把 **Codex Desktop（ChatGPT 桌面版）** 的界面变成中文，并在上游 [shibaweidu/codex-desktop-zh](https://github.com/shibaweidu/codex-desktop-zh)（MIT）的基础上，
+做了一整套**功能增强**，目标是做到“装完即完美、日常零操作”：
 
-本项目基于 [shibaweidu/codex-desktop-zh](https://github.com/shibaweidu/codex-desktop-zh)（MIT）增强而来，
-在其运行时注入汉化的基础上，增加了后台守护、开机自启、自更新、安装包等一整套“开箱即用”能力。
+> **开机自动以中文启动 Codex；点原版图标也是中文；版本更新有提醒；界面里一键重建。**
+
+本项目**完全保留上游能力**（运行时注入汉化、不改 Codex 安装文件、不改 `app.asar`），
+在此之上补齐了上游没有的“日常使用闭环”。上游源码与构建脚本完整保留，
+执行 `重新构建.cmd -Update` 可随时同步上游最新代码并自动重新套用本项目的全部增强。
 
 > ⚠️ 非官方项目，与 OpenAI 无关。仅做本地界面语言增强，不修改 Codex 本体、不代理、不收集账号数据。
 
 ---
 
-## ✨ 功能特性
+## 💎 基于上游的完美功能增强
+
+| 增强项 | 上游原版 | 本增强版 |
+|---|---|---|
+| 中文界面 / 原生菜单 | ✅ 运行时注入 | ✅ 完整保留并验证 |
+| 开机自动中文启动 | ❌ 需要手动打开工具、点按钮 | ✅ 登录后约 2 秒自动拉起，进桌面即是中文 |
+| 点「原版」图标 | ❌ 英文界面 | ✅ 后台守护静默接管，自动切换中文 |
+| 后台常驻与自恢复 | ❌ 无 | ✅ 监督进程 + 守护进程，崩溃 3 秒自动拉起 |
+| 草稿安全 | ❌ 接管时会强杀 | ✅ 超过 30 秒的会话不杀（长会话保护） |
+| Codex 版本更新 | ❌ 更新后汉化静默失效 | ✅ 版本变化弹窗提醒 |
+| 上游启动器更新 | ❌ 无感知 | ✅ 自动检测上游版本并提醒 |
+| 更新操作 | ❌ 去文件夹找脚本 | ✅ 界面「一键重建」自动同步+编译+签名+重启 |
+| 安装 / 卸载 | ❌ 手动拷贝 | ✅ 安装包（EXE/ZIP）+ 干净的卸载脚本 |
+| 代码签名 | ❌ 无 | ✅ 自签名证书（仓库仅含公钥） |
+| 路径变化 | ❌ 失效 | ✅ 自动修正开机自启项与快捷方式 |
+| 日志 | ❌ 无限增长 | ✅ 超 1MB 自动轮转 |
+| 多用户 | ❌ 可能互相干扰 | ✅ 仅处理当前 Windows 会话 |
+| 自我保护 | ❌ 守护与界面可能互相抢占 | ✅ 启动标记 + 归属 PID 协同 |
+
+## ✨ 完整功能特性
 
 | 功能 | 说明 |
 |---|---|
@@ -40,7 +62,7 @@
 
 到 [Releases](../../releases) 下载：
 
-- `Codex中文启动器-安装包-vX.Y.Z.exe` —— 单文件安装程序
+- `Codex-Zh-Launcher-Installer-vX.Y.Z.exe` —— 单文件安装程序
 - 或 `...zip` —— 解压后双击 `安装.cmd`
 
 安装程序会：
@@ -79,10 +101,10 @@ powershell -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
 
 主界面上方的**说明横幅**可随时打开完整《使用说明》。
 
-## 🔄 更新
+## 🔄 更新（自动检测 + 一键同步）
 
-- 启动器会自动检测 **Codex 版本变化** 和 **上游启动器新版本**，弹窗提醒
-- 提醒后打开工具，点 **「一键重建」** 即可：
+- 自动检测 **Codex 版本变化** 和 **上游启动器新版本**，弹窗提醒
+- 提醒后打开工具，点 **「一键重建」**：
   自动下载上游最新源码 → 套用本地改动 → 编译 → 签名 → 重启
 - 也可以命令行：`重新构建.cmd -Update`
 
@@ -103,7 +125,7 @@ powershell -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
 ## 📁 目录结构
 
 ```
-├─ source/codex-desktop-zh-main/   完整源码（含 build.ps1）
+├─ source/codex-desktop-zh-main/   完整源码（含 build.ps1，保留上游结构）
 ├─ overlay/                         本项目的本地改动文件（重建 -Update 时套用）
 ├─ install.ps1 / 安装.cmd           安装程序
 ├─ 卸载.cmd                         卸载
@@ -124,5 +146,6 @@ powershell -ExecutionPolicy Bypass -File 打包安装版.ps1 -NoPause
 ## 🙏 致谢与许可
 
 - 核心汉化注入来自 [shibaweidu/codex-desktop-zh](https://github.com/shibaweidu/codex-desktop-zh)（MIT）
-- 本项目修改同样以 **MIT License** 发布，详见 [LICENSE](LICENSE) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-- 非官方项目，与 OpenAI / Anthropic 无关联
+- 本项目在其基础上做了完整的功能增强，修改部分同样以 **MIT License** 发布，
+  详见 [LICENSE](LICENSE) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- 非官方项目，与 OpenAI 无关联

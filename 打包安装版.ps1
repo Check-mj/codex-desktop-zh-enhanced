@@ -154,8 +154,16 @@ SourceFiles0=$tmp\
 [System.IO.File]::WriteAllText($sedPath, $sed, (New-Object System.Text.ASCIIEncoding))
 
 $iexpress = Join-Path $env:WINDIR 'System32\iexpress.exe'
-& $iexpress /N /Q $sedPath | Out-Null
-Start-Sleep -Seconds 2
+if (Test-Path $iexpress) {
+    $proc = Start-Process -FilePath $iexpress -ArgumentList @('/N', '/Q', $sedPath) -PassThru -WindowStyle Hidden
+    if (-not $proc.WaitForExit(120000)) {
+        try { $proc.Kill() } catch { }
+        Write-Warning "iexpress 超时（可能弹出了隐藏对话框），已跳过单文件安装包；ZIP 安装包仍可用"
+    }
+} else {
+    Write-Warning "找不到 iexpress，已跳过单文件安装包；ZIP 安装包仍可用"
+}
+Start-Sleep -Seconds 1
 
 $exePath = Join-Path $outDir "Codex中文启动器-安装包-v$Version.exe"
 if (Test-Path $exeTmp) {

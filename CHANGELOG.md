@@ -1,4 +1,6 @@
-# Changelog
+# Changelog · 完美功能增强版
+
+> 本项目在上游 shibaweidu/codex-desktop-zh 基础上做完整功能增强，以下为增强内容。
 
 ## v0.8.0
 
