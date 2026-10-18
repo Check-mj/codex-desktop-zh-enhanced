@@ -67,3 +67,17 @@ powershell -File tools\verify-release.ps1 `
 - 导入证书**不能保证**消除 SmartScreen 警告。
 - 本验证流程不等同于独立安全审计。已测试的范围与结论见
   [`SECURITY_DESIGN.md`](SECURITY_DESIGN.md) 与 [`SECURITY_BASELINE.md`](SECURITY_BASELINE.md)。
+## 构建来源与发布一致性
+
+正式发布物由**维护者本机**运行 `重新构建.ps1`（构建+签名）与 `打包安装版.ps1`（打包+签名）生成。
+GitHub Actions 运行用于**验证同一源码 commit 的构建/签名流程**，其产物使用开发验证证书，
+**不作为发布物上传**。
+
+发布清单（`docs/RELEASE_MANIFEST-vX.Y.Z.md`）中：
+
+- `源码 commit`：发布物对应的仓库提交；
+- `本地源码树 SHA-256`：构建前核对本地构建源码与仓库该 commit 内容一致后记录的树哈希；
+- `CI 验证运行`：`head_sha` 等于该源码 commit 的成功运行（仅流程验证，非发布物构建）；
+- 文件哈希与签名信息：与实际发布资产逐个对应。
+
+Release 说明页同时列出上述映射，三者（Release / 清单 / 实际构建记录）指向同一源码 commit。

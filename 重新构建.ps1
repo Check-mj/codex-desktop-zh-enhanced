@@ -65,6 +65,26 @@ function Get-CerThumbprint {
     }
 }
 
+# 源码树哈希：相对路径 + 文件大小 + 文件 SHA-256，用于校验回滚后源码是否完整恢复
+function Get-TreeHash {
+    param($Path)
+    if (-not $Path -or -not (Test-Path $Path)) { return '' }
+    $items = Get-ChildItem $Path -Recurse -File -Force -ErrorAction SilentlyContinue | Sort-Object FullName
+    $sb = New-Object System.Text.StringBuilder
+    foreach ($f in $items) {
+        $rel = $f.FullName.Substring($Path.Length).TrimStart('\', '/')
+        $h = (Get-FileHash $f.FullName -Algorithm SHA256 -ErrorAction SilentlyContinue).Hash
+        [void]$sb.AppendLine("$rel|$($f.Length)|$h")
+    }
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($sb.ToString())
+    $stream = New-Object System.IO.MemoryStream(, $bytes)
+    try {
+        return (Get-FileHash -InputStream $stream -Algorithm SHA256).Hash
+    } finally {
+        $stream.Dispose()
+    }
+}
+
 try {
     Write-Host "== Codex 汉化工具 重建 ==" -ForegroundColor Cyan
     Write-Host "   模式: $(if ($Update) { '同步上游（临时目录构建）' } else { '使用现有源码' })"
@@ -252,6 +272,7 @@ try {
         Write-Host "[5/6] 更新本地源码目录..." -ForegroundColor Yellow
         $sourceBackup = Join-Path $base ("backups\source-pre-update-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
         $oldMoved = $false
+        $oldSourceTreeHash = Get-TreeHash $srcRoot
         try {
             if (Test-Path $srcRoot) {
                 New-Item -ItemType Directory -Force -Path (Split-Path $sourceBackup) | Out-Null
@@ -266,15 +287,17 @@ try {
             $swapError = $_.Exception.Message
             $rollbackOk = $true
 
-            # 1) 恢复旧源码
+            # 1) 恢复旧源码，并用“源码树哈希”验证是否完整恢复（不只检查单个文件）
             if ($oldMoved -and (Test-Path $sourceBackup)) {
                 if (Test-Path $srcRoot) {
                     Move-Item $srcRoot ($srcRoot + '.partial') -Force -ErrorAction SilentlyContinue
                 }
                 Move-Item $sourceBackup $srcRoot -Force -ErrorAction SilentlyContinue
-                if (-not (Test-Path (Join-Path $srcRoot 'build.ps1'))) { $rollbackOk = $false }
+                $restoredTreeHash = Get-TreeHash $srcRoot
+                if (-not $oldSourceTreeHash -or $restoredTreeHash -ne $oldSourceTreeHash) { $rollbackOk = $false }
             } elseif (-not $oldMoved) {
-                if (-not (Test-Path $srcRoot)) { $rollbackOk = $false }
+                $restoredTreeHash = Get-TreeHash $srcRoot
+                if (-not $oldSourceTreeHash -or $restoredTreeHash -ne $oldSourceTreeHash) { $rollbackOk = $false }
             }
 
             # 2) 恢复旧 exe（若已替换）
@@ -303,7 +326,8 @@ try {
             }
 
             if ($rollbackOk) {
-                throw "更新源码目录失败：$swapError。已完整回滚（旧 exe 与旧源码均已恢复）。"
+                $shortTree = if ($oldSourceTreeHash) { $oldSourceTreeHash.Substring(0, 8) } else { '(空)' }
+                throw "更新源码目录失败：$swapError。已完整回滚（exe 与源码树哈希均核对一致：源码树 $shortTree）。"
             } else {
                 throw "更新源码目录失败：$swapError。自动回滚未完全成功！请手动恢复：旧 exe 备份见 $backupDir，旧源码备份见 $sourceBackup。"
             }

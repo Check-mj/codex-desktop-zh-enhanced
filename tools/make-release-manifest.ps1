@@ -19,7 +19,9 @@ param(
     [string]$InstallerExe = '',
     [string]$InstallerZip = '',
     [string]$OutFile = '',
-    [string]$ExpectedThumbprint = '76134CBD2706FD88D9FAD973CED58B3E32AC1DED'
+    [string]$ExpectedThumbprint = '76134CBD2706FD88D9FAD973CED58B3E32AC1DED',
+    [string]$BuildMode = '本机运行 重新构建.ps1 / 打包安装版.ps1（正式签名证书）',
+    [string]$SourceTreeHash = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,6 +41,9 @@ $lines = @()
 $lines += "# 发布清单 v$Version"
 $lines += ""
 $lines += "> 由 tools/make-release-manifest.ps1 生成。用于核对发布物的来源、哈希与签名。"
+$lines += ">"
+$lines += "> 发布物由**维护者本机**构建并签名；CI 运行仅用于验证同一源码 commit 的构建与签名流程，"
+$lines += "> CI 产物使用开发验证签名，**不作为发布物**。"
 $lines += ""
 $lines += "## 版本信息"
 $lines += ""
@@ -48,9 +53,11 @@ $lines += "| 项目版本 | v$Version |"
 $lines += "| 源码 commit | ``$SourceCommit`` |"
 if ($UpstreamVersion) { $lines += "| 上游项目 | shibaweidu/codex-desktop-zh v$UpstreamVersion |" }
 if ($UpstreamCommit) { $lines += "| 上游 commit | ``$UpstreamCommit`` |" }
-if ($WorkflowUrl) { $lines += "| 构建工作流 | $WorkflowUrl |" }
-$lines += "| 生成时间 | $now |"
-$lines += "| 构建系统 | $($os.Caption) $($os.Version) |"
+$lines += "| 产物构建方式 | $BuildMode |"
+if ($SourceTreeHash) { $lines += "| 本地源码树 SHA-256（与仓库 commit 内容一致） | ``$SourceTreeHash`` |" }
+if ($WorkflowUrl) { $lines += "| CI 验证运行（校验源码 commit 的构建/签名流程，非发布物构建） | $WorkflowUrl |" }
+$lines += "| 清单生成时间 | $now |"
+$lines += "| 本地构建系统 | $($os.Caption) $($os.Version) |"
 $lines += ""
 $lines += "## 文件哈希（SHA-256）"
 $lines += ""
@@ -85,6 +92,10 @@ $lines += ('Get-AuthenticodeSignature .\Codex-Zh-Launcher-Installer-v' + $Versio
 $lines += '```'
 $lines += ""
 $lines += "详见 [RELEASE_VERIFICATION.md](RELEASE_VERIFICATION.md)。"
+if ($SourceTreeHash) {
+    $lines += ""
+    $lines += "本地构建所用源码树哈希：``$SourceTreeHash``（与仓库 ``$SourceCommit`` 的源码内容一致，由发布脚本在构建前核对）。"
+}
 $lines += ""
 $lines += "> 说明：哈希与签名可证明文件与发布时一致、且由预期身份签名，"
 $lines += "> 但不构成对程序行为的独立安全审计。"
