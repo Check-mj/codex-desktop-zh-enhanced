@@ -24,6 +24,7 @@ param(
     [string]$SourceTreeHash = '',
     [string]$ImplementationCommits = '',
     [string]$ReleaseChoreCommits = '',
+    [string]$TagCommit = '',
     [string]$CiRuns = '',
     [string]$RepoUrl = 'https://github.com/Check-mj/codex-desktop-zh-enhanced'
 )
@@ -68,6 +69,10 @@ $lines += ""
 $lines += "| 类型 | 提交 | 说明 |"
 $lines += "|---|---|---|"
 $lines += "| 发布源码提交 | [``$($SourceCommit.Substring(0, 8))``]($RepoUrl/commit/$SourceCommit) | 发布物由该提交的源码构建 |"
+if ($TagCommit) {
+    $tagShort = if ($TagCommit.Length -gt 8) { $TagCommit.Substring(0, 8) } else { $TagCommit }
+    $lines += "| 发布 tag 提交（Release 标记） | [``$tagShort``]($RepoUrl/commit/$TagCommit) | 该 Release 的 tag 指向此提交；可能仅含发布收尾改动 |"
+}
 $implList = @()
 if ($ImplementationCommits) { $implList = $ImplementationCommits -split '[,\s]+' | Where-Object { $_ } }
 foreach ($c in $implList) {
@@ -104,6 +109,13 @@ if ($CiRuns) {
 }
 $lines += ""
 $lines += "> CI 运行仅用于验证同一源码 commit 的构建/签名流程；CI 产物使用开发验证签名，不作为发布物。"
+$lines += ""
+$lines += "## 发布边界说明"
+$lines += ""
+$lines += "- 本 Release 的 tag 指向「发布 tag 提交」；发布物由「发布源码提交」构建；"
+$lines += "- Release 创建后 main 分支上的文档/清单提交，仅改进维护与溯源信息，**不重新构建、不改变已发布二进制**；"
+$lines += "- 判断已发布二进制是否变化：比对 Release 资产的 SHA-256 与 SHA256SUMS / 本清单记录；"
+$lines += "- 发布清单资产本身可能在发布后被更新（文档性）；exe/zip 是否变化以 SHA-256 为准。"
 $lines += ""
 $lines += "## 文件哈希（SHA-256）"
 $lines += ""

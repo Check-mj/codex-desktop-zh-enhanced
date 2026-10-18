@@ -47,3 +47,4 @@
 - [ ] 记录构建时间、Windows 版本、Codex 版本
 - [ ] 上传 Release 资产（安装包 EXE/ZIP、SHA256SUMS.txt、发布清单）
 - [ ] 在 Release 说明中写明验证方法（链接 `docs/RELEASE_VERIFICATION.md`）
+- [ ] 发布边界已说明：tag 提交与发布源码提交的区别；发布后文档更新不改变二进制

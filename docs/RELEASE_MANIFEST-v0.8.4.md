@@ -16,7 +16,7 @@
 | 产物构建方式 | 本机运行 重新构建.ps1 / 打包安装版.ps1（正式签名证书） |
 | 本地源码树 SHA-256（与仓库 commit 内容一致） | `46FE15DDCFF8F0910459138D9F99421853C35D4172841B0FA40D5ED94086041B` |
 | CI 验证运行（校验源码 commit 的构建/签名流程，非发布物构建） | https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39150742081 |
-| 清单生成时间 | 2026-10-19 01:50:27 +08:00 |
+| 清单生成时间 | 2026-10-19 01:54:47 +08:00 |
 | 本地构建系统 | Microsoft Windows 11 专业版 10.0.26300 |
 
 ## 提交记录
@@ -24,6 +24,7 @@
 | 类型 | 提交 | 说明 |
 |---|---|---|
 | 发布源码提交 | [`202a0455`](https://github.com/Check-mj/codex-desktop-zh-enhanced/commit/202a0455e05e45a83a68eb79bcd161bf81874280) | 发布物由该提交的源码构建 |
+| 发布 tag 提交（Release 标记） | [`2cd0cc88`](https://github.com/Check-mj/codex-desktop-zh-enhanced/commit/2cd0cc88a61797b58fe5aebfdb0e8b19edb0e6a4) | 该 Release 的 tag 指向此提交；可能仅含发布收尾改动 |
 | 实现改动提交 | [`1168b908`](https://github.com/Check-mj/codex-desktop-zh-enhanced/commit/1168b90819d4024c49cdce569785bde988545ed7) | 该版本包含的功能/可靠性改动 |
 | 构建/发布配套提交 | [`202a0455`](https://github.com/Check-mj/codex-desktop-zh-enhanced/commit/202a0455e05e45a83a68eb79bcd161bf81874280) | 源码对齐、版本号、清单等收尾改动，不含功能变化 |
 
@@ -38,8 +39,16 @@
 | [#26](https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39150742081) | `202a0455e05e45a83a68eb79bcd161bf81874280` | success | 发布源码提交的构建/签名验证 |
 | [#27](https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39150879930) | `2cd0cc88a61797b58fe5aebfdb0e8b19edb0e6a4` | success | 发布说明/清单提交验证 |
 | [#28](https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39151204206) | `d91c0a789688cc40f260dac6f7aaeee1128eba7c` | success | 提交类型区分文档验证 |
+| [#29](https://github.com/Check-mj/codex-desktop-zh-enhanced/actions/runs/39151449630) | `5313bff71252ac96c56f8410b4b59c4168d9a602` | success | 提交归类修正与 CI 记录文档验证 |
 
 > CI 运行仅用于验证同一源码 commit 的构建/签名流程；CI 产物使用开发验证签名，不作为发布物。
+
+## 发布边界说明
+
+- 本 Release 的 tag 指向「发布 tag 提交」；发布物由「发布源码提交」构建；
+- Release 创建后 main 分支上的文档/清单提交，仅改进维护与溯源信息，**不重新构建、不改变已发布二进制**；
+- 判断已发布二进制是否变化：比对 Release 资产的 SHA-256 与 SHA256SUMS / 本清单记录；
+- 发布清单资产本身可能在发布后被更新（文档性）；exe/zip 是否变化以 SHA-256 为准。
 
 ## 文件哈希（SHA-256）
 
